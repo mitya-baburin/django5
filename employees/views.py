@@ -1,7 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Employee
 from .forms import ImageForm
+from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+import json  # Import json
 
 def home(request):
     context = {
@@ -11,7 +13,7 @@ def home(request):
     return render(request, 'home.html', context)
 
 def employee_list(request):
-    employees = Employee.objects.order_by('username') 
+    employees = Employee.objects.order_by('username')
     paginator = Paginator(employees, 10)
     page = request.GET.get('page')
     try:
@@ -37,14 +39,19 @@ def upload_image(request, employee_id):
     if request.method == 'POST':
         form = ImageForm(request.POST, request.FILES)
         if form.is_valid():
-            image = form.save(commit=False)
-            image.employee = employee
-            image.save()
-            return redirect('employee_detail', employee_id=employee_id)  # Redirect на страницу сотрудника
-
+            try:
+                image = form.save(commit=False)
+                image.employee = employee
+                image.save()
+                messages.success(request, 'Изображение успешно загружено!')
+                return redirect('employee_detail', employee_id=employee_id)
+            except Exception as e:
+                messages.error(request, f'Произошла ошибка при загрузке изображения: {str(e)}')
+        else:
+            messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
     else:
         form = ImageForm()
-    
+
     context = {
         'employee': employee,
         'form': form,
