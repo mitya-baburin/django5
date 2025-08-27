@@ -1,9 +1,7 @@
-# employees/views.py
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Employee
-from .forms import EmployeeForm, ImageUploadForm
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .forms import ImageForm
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 def home(request):
     context = {
@@ -13,7 +11,7 @@ def home(request):
     return render(request, 'home.html', context)
 
 def employee_list(request):
-    employees = Employee.objects.order_by('username')  # Упорядочиваем список
+    employees = Employee.objects.order_by('username') 
     paginator = Paginator(employees, 10)
     page = request.GET.get('page')
     try:
@@ -42,11 +40,11 @@ def upload_image(request, employee_id):
             image = form.save(commit=False)
             image.employee = employee
             image.save()
-            # Перенаправление или отображение сообщения об успехе
+            return redirect('employee_detail', employee_id=employee_id)  # Redirect на страницу сотрудника
+
     else:
         form = ImageForm()
-    return render(request, 'employees/upload_image.html', {'form': form, 'employee': employee})
-   
+    
     context = {
         'employee': employee,
         'form': form,
